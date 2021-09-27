@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useRef} from "react";
 import {AgGridReact} from 'ag-grid-react';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
@@ -9,13 +9,18 @@ function Todos() {
     const [todo, setTodo] = useState({date: '', description: '', priority: ''});
     const [todos, setTodos] = useState([]);
 
+    const gridRef = useRef();
+
     const inputChanged = (e) => {
         setTodo({...todo, [e.target.name]: e.target.value});
     }
 
-    const deleteTodo = (i) => {
-        console.log(i);
-        setTodos(todos.filter((item, index) => index !== i));
+    const deleteTodo = () => {
+        try {
+            setTodos(todos.filter((item, index) => index !== gridRef.current.getSelectedNodes()[0].childIndex));
+        } catch (Exception) {
+            alert("Valitse poistettava...")
+        }
     }
 
     const columns = [
@@ -30,10 +35,16 @@ function Todos() {
             <label>Description: </label><input name="description" value={todo.description} onChange={inputChanged}></input> 
             <label>Date: </label><input name="date" type= "date" value={todo.date} onChange={inputChanged}></input>   
             <label>Priority: </label><input name="priority" type= "text" value={todo.priority} onChange={inputChanged}></input> 
-            <button onClick={() => setTodos([todo, ...todos])}>Add</button>  
-
+            <button onClick={() => {
+                setTodos([todo, ...todos])
+                setTodo({date:'' , description: '', priority:''})}
+                }>Add</button>  
+            <button onClick={deleteTodo}>Delete</button>
             <div className="ag-theme-material" style={{height: 400, width: 600, margin: 'auto'}}>
                 <AgGridReact
+                    ref = {gridRef}
+                    onGridReady = {params => gridRef.current = params.api}
+                    rowSelection = "single"
                     rowData={todos}
                     columnDefs = {columns}
                     animateRows {...true}>
