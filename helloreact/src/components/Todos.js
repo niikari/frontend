@@ -1,5 +1,19 @@
 import React, {useState, useRef} from "react";
 import {AgGridReact} from 'ag-grid-react';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import Tooltip from '@mui/material/Tooltip';
+
+import DateFnsUtils from '@date-io/date-fns'; 
+import {
+  DatePicker,
+  TimePicker,
+  DateTimePicker,
+  MuiPickersUtilsProvider,
+} from '@material-ui/pickers';
 
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-material.css';
@@ -15,12 +29,17 @@ function Todos() {
         setTodo({...todo, [e.target.name]: e.target.value});
     }
 
+
     const deleteTodo = () => {
         try {
             setTodos(todos.filter((item, index) => index !== gridRef.current.getSelectedNodes()[0].childIndex));
         } catch (Exception) {
             alert("Valitse poistettava...")
         }
+    }
+
+    const handleDateChange = (date) => {
+        setTodo({...todo, date: date.toLocaleDateString('fi')})
     }
 
     const columns = [
@@ -30,16 +49,21 @@ function Todos() {
     ]
 
     return (
-        <>
-            <h1>Add Todos</h1>
-            <label>Description: </label><input name="description" value={todo.description} onChange={inputChanged}></input> 
-            <label>Date: </label><input name="date" type= "date" value={todo.date} onChange={inputChanged}></input>   
-            <label>Priority: </label><input name="priority" type= "text" value={todo.priority} onChange={inputChanged}></input> 
-            <button onClick={() => {
-                setTodos([todo, ...todos])
-                setTodo({date:'' , description: '', priority:''})}
-                }>Add</button>  
-            <button onClick={deleteTodo}>Delete</button>
+        <div style={{marginTop: 20,}}>
+            <Stack spacing={2} direction="row" justifyContent="center">
+                <TextField label="Description" size="small" name="description" value={todo.description} onChange={inputChanged}></TextField> 
+                <MuiPickersUtilsProvider utils={DateFnsUtils}>
+                <DatePicker onChange={date => handleDateChange(date)} /> 
+                </MuiPickersUtilsProvider> 
+                <TextField label="Priority" size="small" name="priority" type= "text" value={todo.priority} onChange={inputChanged}></TextField> 
+                <Button variant="contained" onClick={() => {
+                    setTodos([todo, ...todos])
+                    setTodo({date:'' , description: '', priority:''})}
+                    } startIcon={<AddIcon />}>Add</Button>  
+                    <Tooltip title="select row to remove">
+                        <Button variant="contained" color="error" onClick={deleteTodo} startIcon={<DeleteIcon />}>Delete</Button>
+                    </Tooltip>
+            </Stack>
             <div className="ag-theme-material" style={{height: 400, width: 600, margin: 'auto'}}>
                 <AgGridReact
                     ref = {gridRef}
@@ -52,7 +76,7 @@ function Todos() {
 
             </div>
                
-        </>
+        </div>
     );
 }
 
